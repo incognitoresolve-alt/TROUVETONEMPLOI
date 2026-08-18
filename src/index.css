@@ -1,0 +1,36 @@
+:root {
+  --text: #3e4c59;
+  --text-h: #1f2933;
+  --bg: #f4f6f9;
+  --card-bg: #ffffff;
+  --border: #dde3ea;
+  --accent: #1f3a5f;
+  --accent-hover: #16283f;
+
+  font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  color: var(--text-h);
+}
