@@ -36,7 +36,10 @@ export function SkillsLanguagesForm({
 
   return (
     <section className="card">
-      <h2>Compétences & langues</h2>
+      <div className="card-heading">
+        <span className="kicker">04</span>
+        <h2>Compétences & langues</h2>
+      </div>
 
       <h3>Compétences</h3>
       {skills.map((s, i) => (

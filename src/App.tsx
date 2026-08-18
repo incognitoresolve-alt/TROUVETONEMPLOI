@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { pdf, type DocumentProps } from "@react-pdf/renderer";
-import type { ReactElement } from "react";
+import { pdf } from "@react-pdf/renderer";
 import type { CVData } from "./types";
 import { emptyData } from "./data/emptyData";
+import { savePdf } from "./lib/savePdf";
 import { PersonalForm } from "./components/PersonalForm";
 import { ExperiencesForm } from "./components/ExperiencesForm";
 import { EducationsForm } from "./components/EducationsForm";
@@ -24,26 +24,24 @@ function slugify(text: string): string {
   );
 }
 
-async function downloadPdf(doc: ReactElement<DocumentProps>, filename: string) {
-  const blob = await pdf(doc).toBlob();
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
+const statusMessages: Record<string, string> = {
+  declined: "Téléchargement annulé.",
+  unavailable: "Le téléchargement n'est pas disponible dans cet environnement.",
+  error: "Une erreur est survenue pendant la génération du PDF.",
+};
 
 function App() {
   const [data, setData] = useState<CVData>(emptyData);
   const [downloading, setDownloading] = useState<"cv" | "letter" | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   async function handleDownloadCv() {
     setDownloading("cv");
+    setStatus(null);
     try {
-      await downloadPdf(<CVDocument data={data} />, `CV-${slugify(data.personal.fullName)}.pdf`);
+      const blob = await pdf(<CVDocument data={data} />).toBlob();
+      const result = await savePdf(blob, `CV-${slugify(data.personal.fullName)}.pdf`);
+      if (!result.ok) setStatus(statusMessages[result.reason]);
     } finally {
       setDownloading(null);
     }
@@ -51,11 +49,14 @@ function App() {
 
   async function handleDownloadLetter() {
     setDownloading("letter");
+    setStatus(null);
     try {
-      await downloadPdf(
-        <CoverLetterDocument data={data} />,
+      const blob = await pdf(<CoverLetterDocument data={data} />).toBlob();
+      const result = await savePdf(
+        blob,
         `Lettre-de-motivation-${slugify(data.personal.fullName)}.pdf`,
       );
+      if (!result.ok) setStatus(statusMessages[result.reason]);
     } finally {
       setDownloading(null);
     }
@@ -65,6 +66,7 @@ function App() {
     <div className="app-shell">
       <header className="app-header">
         <div>
+          <p className="eyebrow">TrouveTonEmploi</p>
           <h1>Générateur de CV & lettre de motivation</h1>
           <p>Renseignez vos informations, puis téléchargez vos documents en PDF.</p>
         </div>
@@ -82,6 +84,8 @@ function App() {
           </button>
         </div>
       </header>
+
+      {status && <p className="status-message">{status}</p>}
 
       <main className="app-main">
         <PersonalForm

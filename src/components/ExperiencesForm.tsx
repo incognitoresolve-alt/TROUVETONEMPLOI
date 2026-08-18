@@ -21,7 +21,10 @@ export function ExperiencesForm({ value, onChange }: Props) {
 
   return (
     <section className="card">
-      <h2>Expérience professionnelle</h2>
+      <div className="card-heading">
+        <span className="kicker">02</span>
+        <h2>Expérience professionnelle</h2>
+      </div>
       {value.map((exp, i) => (
         <div className="entry" key={exp.id}>
           <div className="entry-header">

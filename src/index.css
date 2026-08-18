@@ -1,14 +1,24 @@
 :root {
-  --text: #3e4c59;
-  --text-h: #1f2933;
-  --bg: #f4f6f9;
-  --card-bg: #ffffff;
-  --border: #dde3ea;
-  --accent: #1f3a5f;
-  --accent-hover: #16283f;
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --surface-alt: #f7f9fc;
+  --ink: #16223a;
+  --text: #47536b;
+  --text-muted: #7a869c;
+  --accent: #2b4c7e;
+  --accent-strong: #1b3357;
+  --accent-soft: #e4ecf7;
+  --line: #dce3ec;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --shadow: 0 1px 2px rgba(22, 34, 58, 0.04), 0 8px 24px -12px rgba(22, 34, 58, 0.16);
 
-  font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
-  color-scheme: light;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+  font: 16px/1.55 var(--font-body);
+  color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
@@ -16,6 +26,40 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   box-sizing: border-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141f;
+    --surface: #161e2b;
+    --surface-alt: #1b2434;
+    --ink: #edf2fa;
+    --text: #b7c3d6;
+    --text-muted: #7e8ca3;
+    --accent: #7ca6e0;
+    --accent-strong: #9dbeea;
+    --accent-soft: rgba(124, 166, 224, 0.14);
+    --line: #29354a;
+    --danger: #e5766b;
+    --danger-soft: rgba(229, 118, 107, 0.14);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0e141f;
+  --surface: #161e2b;
+  --surface-alt: #1b2434;
+  --ink: #edf2fa;
+  --text: #b7c3d6;
+  --text-muted: #7e8ca3;
+  --accent: #7ca6e0;
+  --accent-strong: #9dbeea;
+  --accent-soft: rgba(124, 166, 224, 0.14);
+  --line: #29354a;
+  --danger: #e5766b;
+  --danger-soft: rgba(229, 118, 107, 0.14);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
 }
 
 *,
@@ -26,11 +70,24 @@
 
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
 }
 
 h1,
 h2,
 h3 {
+  font-family: var(--font-display);
   font-weight: 600;
-  color: var(--text-h);
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
 }

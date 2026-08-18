@@ -12,7 +12,10 @@ export function PersonalForm({ value, onChange }: Props) {
 
   return (
     <section className="card">
-      <h2>Informations personnelles</h2>
+      <div className="card-heading">
+        <span className="kicker">01</span>
+        <h2>Informations personnelles</h2>
+      </div>
       <div className="grid-2">
         <label>
           Nom complet

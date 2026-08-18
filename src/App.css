@@ -1,7 +1,7 @@
 .app-shell {
-  max-width: 900px;
+  max-width: 880px;
   margin: 0 auto;
-  padding: 24px 20px 64px;
+  padding: 0 20px 72px;
 }
 
 .app-header {
@@ -13,21 +13,33 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 20px;
-  margin: -24px -20px 24px;
-  background: var(--card-bg);
-  border-bottom: 1px solid var(--border);
+  padding: 18px 20px;
+  margin: 0 -20px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-header .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--accent);
+  margin: 0 0 4px;
 }
 
 .app-header h1 {
-  font-size: 20px;
+  font-size: 22px;
+  font-style: italic;
+  font-weight: 500;
   margin: 0 0 4px;
 }
 
 .app-header p {
   margin: 0;
   font-size: 13px;
-  color: var(--text);
+  color: var(--text-muted);
+  max-width: 46ch;
 }
 
 .header-actions {
@@ -38,39 +50,51 @@
 
 button {
   font: inherit;
+  font-weight: 500;
   cursor: pointer;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   padding: 10px 16px;
   background: var(--accent);
   color: #fff;
-  transition: background 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 button:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: var(--accent-strong);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 button:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 button.secondary {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--accent);
   border: 1px solid var(--accent);
 }
 
 button.secondary:hover:not(:disabled) {
-  background: #eef3f9;
+  background: var(--accent-soft);
 }
 
 button.link-btn {
   background: none;
-  color: #b3261e;
+  color: var(--danger);
   padding: 0;
   font-size: 13px;
+  font-weight: 500;
+  border-radius: 4px;
 }
 
 button.link-btn:hover {
@@ -78,18 +102,34 @@ button.link-btn:hover {
   text-decoration: underline;
 }
 
+button.link-btn.accent {
+  color: var(--accent);
+}
+
 button.add-btn {
   background: none;
   color: var(--accent);
-  border: 1px dashed var(--accent);
-  padding: 8px 14px;
+  border: 1px dashed var(--line);
+  padding: 9px 14px;
   font-size: 13px;
   width: 100%;
   margin-top: 4px;
+  border-radius: 7px;
 }
 
 button.add-btn:hover {
-  background: #eef3f9;
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.status-message {
+  max-width: 880px;
+  margin: 0 auto 20px;
+  padding: 10px 14px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: 8px;
+  font-size: 13px;
 }
 
 .app-main {
@@ -99,39 +139,61 @@ button.add-btn:hover {
 }
 
 .card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow);
 }
 
-.card h2 {
-  font-size: 16px;
-  margin: 0 0 16px;
+.card-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.card-heading .kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 4px;
+  padding: 2px 6px;
+  letter-spacing: 0.04em;
+}
+
+.card-heading h2 {
+  font-size: 17px;
+  font-weight: 600;
+  font-style: normal;
+  margin: 0;
 }
 
 .card h3 {
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text);
-  margin: 20px 0 10px;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin: 22px 0 12px;
 }
 
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
+  gap: 14px 16px;
 }
 
 label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-h);
-  margin-bottom: 12px;
+  color: var(--ink);
+  margin-bottom: 14px;
 }
 
 label.checkbox {
@@ -139,6 +201,7 @@ label.checkbox {
   align-items: center;
   gap: 8px;
   font-weight: 400;
+  color: var(--text);
 }
 
 label.checkbox input {
@@ -149,17 +212,25 @@ input,
 textarea {
   font: inherit;
   font-weight: 400;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: #fff;
-  color: var(--text-h);
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface-alt);
+  color: var(--ink);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 input:focus,
 textarea:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 0;
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 textarea {
@@ -168,9 +239,9 @@ textarea {
 }
 
 .entry {
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
-  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  margin-top: 18px;
 }
 
 .entry:first-of-type {
@@ -183,10 +254,13 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 12px;
 }
 
 .entry-row {

@@ -21,7 +21,10 @@ export function EducationsForm({ value, onChange }: Props) {
 
   return (
     <section className="card">
-      <h2>Formation</h2>
+      <div className="card-heading">
+        <span className="kicker">03</span>
+        <h2>Formation</h2>
+      </div>
       {value.map((ed, i) => (
         <div className="entry" key={ed.id}>
           <div className="entry-header">

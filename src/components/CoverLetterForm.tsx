@@ -29,7 +29,10 @@ Dans l'attente de votre retour, je vous prie d'agréer, Madame, Monsieur, l'expr
 
   return (
     <section className="card">
-      <h2>Lettre de motivation</h2>
+      <div className="card-heading">
+        <span className="kicker">05</span>
+        <h2>Lettre de motivation</h2>
+      </div>
       <div className="grid-2">
         <label>
           Destinataire
@@ -82,7 +85,7 @@ Dans l'attente de votre retour, je vous prie d'agréer, Madame, Monsieur, l'expr
       </div>
       <div className="entry-header">
         <span>Corps de la lettre</span>
-        <button type="button" className="link-btn" onClick={generateTemplate}>
+        <button type="button" className="link-btn accent" onClick={generateTemplate}>
           Générer un modèle
         </button>
       </div>
