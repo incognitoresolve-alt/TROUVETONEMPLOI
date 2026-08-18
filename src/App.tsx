@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import type { CVData } from "./types";
 import { emptyData } from "./data/emptyData";
 import { savePdf } from "./lib/savePdf";
+import { generateCoverLetterBody } from "./lib/coverLetterTemplate";
 import { PersonalForm } from "./components/PersonalForm";
 import { ExperiencesForm } from "./components/ExperiencesForm";
 import { EducationsForm } from "./components/EducationsForm";
@@ -34,6 +35,33 @@ function App() {
   const [data, setData] = useState<CVData>(emptyData);
   const [downloading, setDownloading] = useState<"cv" | "letter" | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [letterAuto, setLetterAuto] = useState(true);
+
+  useEffect(() => {
+    if (!letterAuto) return;
+    setData((d) => ({
+      ...d,
+      coverLetter: { ...d.coverLetter, corps: generateCoverLetterBody(d) },
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    letterAuto,
+    data.personal,
+    data.experiences,
+    data.skills,
+    data.coverLetter.destinataire,
+    data.coverLetter.entreprise,
+    data.coverLetter.objet,
+  ]);
+
+  function handleCorpsEdit(corps: string) {
+    setLetterAuto(false);
+    setData((d) => ({ ...d, coverLetter: { ...d.coverLetter, corps } }));
+  }
+
+  function handleRegenerate() {
+    setLetterAuto(true);
+  }
 
   async function handleDownloadCv() {
     setDownloading("cv");
@@ -108,8 +136,10 @@ function App() {
         />
         <CoverLetterForm
           value={data.coverLetter}
-          personal={data.personal}
+          autoUpdating={letterAuto}
           onChange={(coverLetter) => setData({ ...data, coverLetter })}
+          onCorpsEdit={handleCorpsEdit}
+          onRegenerate={handleRegenerate}
         />
       </main>
     </div>

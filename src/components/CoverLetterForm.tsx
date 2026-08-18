@@ -1,30 +1,22 @@
-import type { CoverLetterInfo, PersonalInfo } from "../types";
+import type { CoverLetterInfo } from "../types";
 
 interface Props {
   value: CoverLetterInfo;
-  personal: PersonalInfo;
+  autoUpdating: boolean;
   onChange: (value: CoverLetterInfo) => void;
+  onCorpsEdit: (corps: string) => void;
+  onRegenerate: () => void;
 }
 
-export function CoverLetterForm({ value, personal, onChange }: Props) {
+export function CoverLetterForm({
+  value,
+  autoUpdating,
+  onChange,
+  onCorpsEdit,
+  onRegenerate,
+}: Props) {
   function set<K extends keyof CoverLetterInfo>(key: K, v: CoverLetterInfo[K]) {
     onChange({ ...value, [key]: v });
-  }
-
-  function generateTemplate() {
-    const poste = value.objet || "ce poste";
-    const entreprise = value.entreprise || "votre entreprise";
-    const titre = personal.jobTitle || "professionnel(le) motivé(e)";
-    const template = `Madame, Monsieur,
-
-Actuellement ${titre}, je vous propose ma candidature pour ${poste} au sein de ${entreprise}. Votre offre a particulièrement retenu mon attention car elle correspond à la fois à mon expérience et à mes aspirations professionnelles.
-
-Au cours de mon parcours, j'ai développé des compétences solides que je souhaite aujourd'hui mettre au service de votre entreprise. Mon sens de l'organisation, ma capacité d'adaptation et mon envie d'apprendre sont autant d'atouts que je pourrai mobiliser dans ce poste.
-
-Je serais ravi(e) de vous rencontrer afin de vous exposer plus en détail ma motivation et de vous démontrer ce que je pourrai apporter à votre équipe.
-
-Dans l'attente de votre retour, je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.`;
-    set("corps", template);
   }
 
   return (
@@ -84,15 +76,20 @@ Dans l'attente de votre retour, je vous prie d'agréer, Madame, Monsieur, l'expr
         </label>
       </div>
       <div className="entry-header">
-        <span>Corps de la lettre</span>
-        <button type="button" className="link-btn accent" onClick={generateTemplate}>
-          Générer un modèle
-        </button>
+        <span>
+          Corps de la lettre
+          {autoUpdating ? " — générée automatiquement" : " — modifiée manuellement"}
+        </span>
+        {!autoUpdating && (
+          <button type="button" className="link-btn accent" onClick={onRegenerate}>
+            Revenir au modèle automatique
+          </button>
+        )}
       </div>
       <textarea
         value={value.corps}
-        onChange={(e) => set("corps", e.target.value)}
-        placeholder="Rédigez ou générez votre lettre, puis modifiez-la librement."
+        onChange={(e) => onCorpsEdit(e.target.value)}
+        placeholder="Se génère automatiquement à partir de vos informations. Modifiez-la librement si besoin."
         rows={12}
       />
     </section>
