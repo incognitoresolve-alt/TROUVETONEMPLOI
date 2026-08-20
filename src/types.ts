@@ -8,7 +8,10 @@ export interface PersonalInfo {
   linkedin: string;
   website: string;
   summary: string;
+  photoDataUrl: string;
 }
+
+export type CvTemplate = "sidebar" | "classic";
 
 export interface Experience {
   id: string;
@@ -59,4 +62,5 @@ export interface CVData {
   skills: Skill[];
   languages: LanguageItem[];
   coverLetter: CoverLetterInfo;
+  template: CvTemplate;
 }

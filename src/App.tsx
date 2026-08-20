@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import type { CVData } from "./types";
-import { emptyData } from "./data/emptyData";
-import { savePdf } from "./lib/savePdf";
+import { emptyData, normalizeData } from "./data/emptyData";
+import { saveFile } from "./lib/saveFile";
 import { generateCoverLetterBody } from "./lib/coverLetterTemplate";
 import { clearStoredState, loadStoredState, saveStoredState } from "./lib/storage";
 import { PersonalForm } from "./components/PersonalForm";
@@ -10,6 +10,7 @@ import { ExperiencesForm } from "./components/ExperiencesForm";
 import { EducationsForm } from "./components/EducationsForm";
 import { SkillsLanguagesForm } from "./components/SkillsLanguagesForm";
 import { CoverLetterForm } from "./components/CoverLetterForm";
+import { TemplateSelector } from "./components/TemplateSelector";
 import { CVDocument } from "./pdf/CVDocument";
 import { CoverLetterDocument } from "./pdf/CoverLetterDocument";
 import "./App.css";
@@ -29,14 +30,17 @@ function slugify(text: string): string {
 const statusMessages: Record<string, string> = {
   declined: "Téléchargement annulé.",
   unavailable: "Le téléchargement n'est pas disponible dans cet environnement.",
-  error: "Une erreur est survenue pendant la génération du PDF.",
+  error: "Une erreur est survenue pendant la génération du fichier.",
+  invalid: "Ce fichier n'est pas un profil JSON valide.",
+  imported: "Profil importé avec succès.",
 };
 
 function App() {
   const [data, setData] = useState<CVData>(() => loadStoredState()?.data ?? emptyData());
-  const [downloading, setDownloading] = useState<"cv" | "letter" | null>(null);
+  const [downloading, setDownloading] = useState<"cv" | "letter" | "json" | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [letterAuto, setLetterAuto] = useState(() => loadStoredState()?.letterAuto ?? true);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => saveStoredState({ data, letterAuto }), 300);
@@ -84,7 +88,7 @@ function App() {
     setStatus(null);
     try {
       const blob = await pdf(<CVDocument data={data} />).toBlob();
-      const result = await savePdf(blob, `CV-${slugify(data.personal.fullName)}.pdf`);
+      const result = await saveFile(blob, `CV-${slugify(data.personal.fullName)}.pdf`);
       if (!result.ok) setStatus(statusMessages[result.reason]);
     } finally {
       setDownloading(null);
@@ -96,13 +100,46 @@ function App() {
     setStatus(null);
     try {
       const blob = await pdf(<CoverLetterDocument data={data} />).toBlob();
-      const result = await savePdf(
+      const result = await saveFile(
         blob,
         `Lettre-de-motivation-${slugify(data.personal.fullName)}.pdf`,
       );
       if (!result.ok) setStatus(statusMessages[result.reason]);
     } finally {
       setDownloading(null);
+    }
+  }
+
+  async function handleExportJson() {
+    setDownloading("json");
+    setStatus(null);
+    try {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const result = await saveFile(blob, `profil-${slugify(data.personal.fullName)}.json`);
+      if (!result.ok) setStatus(statusMessages[result.reason]);
+    } finally {
+      setDownloading(null);
+    }
+  }
+
+  function handleImportClick() {
+    importInputRef.current?.click();
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setStatus(null);
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const imported = normalizeData(parsed);
+      setData(imported);
+      setLetterAuto(imported.coverLetter.corps.trim() === "");
+      setStatus(statusMessages.imported);
+    } catch {
+      setStatus(statusMessages.invalid);
     }
   }
 
@@ -131,6 +168,11 @@ function App() {
           </button>
         </div>
       </header>
+
+      <TemplateSelector
+        value={data.template}
+        onChange={(template) => setData((d) => ({ ...d, template }))}
+      />
 
       {status && <p className="status-message">{status}</p>}
 
@@ -163,6 +205,26 @@ function App() {
       </main>
 
       <footer className="app-footer">
+        <button
+          type="button"
+          className="link-btn accent"
+          onClick={handleExportJson}
+          disabled={downloading !== null}
+        >
+          Exporter mon profil (JSON)
+        </button>
+        <span className="footer-sep">·</span>
+        <button type="button" className="link-btn accent" onClick={handleImportClick}>
+          Importer un profil (JSON)
+        </button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".json,application/json"
+          onChange={handleImportFile}
+          hidden
+        />
+        <span className="footer-sep">·</span>
         <button type="button" className="link-btn" onClick={handleReset}>
           Effacer mes données et recommencer
         </button>

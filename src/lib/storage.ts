@@ -1,4 +1,5 @@
 import type { CVData } from "../types";
+import { normalizeData } from "../data/emptyData";
 
 const STORAGE_KEY = "trouvetonemploi-cv-data";
 
@@ -13,7 +14,10 @@ export function loadStoredState(): StoredState | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || !parsed.data) return null;
-    return parsed as StoredState;
+    return {
+      data: normalizeData(parsed.data),
+      letterAuto: typeof parsed.letterAuto === "boolean" ? parsed.letterAuto : true,
+    };
   } catch {
     return null;
   }

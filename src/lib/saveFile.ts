@@ -12,11 +12,11 @@ declare global {
   }
 }
 
-export type SavePdfResult =
+export type SaveFileResult =
   | { ok: true }
   | { ok: false; reason: "declined" | "unavailable" | "error"; message?: string };
 
-export async function savePdf(blob: Blob, filename: string): Promise<SavePdfResult> {
+export async function saveFile(blob: Blob, filename: string): Promise<SaveFileResult> {
   const claude = window.claude;
   if (claude?.use) {
     const downloads = await claude.use("downloads");

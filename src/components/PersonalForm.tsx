@@ -1,4 +1,6 @@
+import { useState } from "react";
 import type { PersonalInfo } from "../types";
+import { fileToResizedDataUrl } from "../lib/image";
 
 interface Props {
   value: PersonalInfo;
@@ -6,8 +8,27 @@ interface Props {
 }
 
 export function PersonalForm({ value, onChange }: Props) {
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
   function set<K extends keyof PersonalInfo>(key: K, v: PersonalInfo[K]) {
     onChange({ ...value, [key]: v });
+  }
+
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Veuillez choisir un fichier image.");
+      return;
+    }
+    try {
+      const dataUrl = await fileToResizedDataUrl(file);
+      set("photoDataUrl", dataUrl);
+      setPhotoError(null);
+    } catch {
+      setPhotoError("Impossible de charger cette image.");
+    }
   }
 
   return (
@@ -16,6 +37,29 @@ export function PersonalForm({ value, onChange }: Props) {
         <span className="kicker">01</span>
         <h2>Informations personnelles</h2>
       </div>
+
+      <div className="photo-row">
+        <div className="photo-preview">
+          {value.photoDataUrl ? (
+            <img src={value.photoDataUrl} alt="Photo de profil" />
+          ) : (
+            <span>Photo</span>
+          )}
+        </div>
+        <div className="photo-actions">
+          <label className="file-btn">
+            {value.photoDataUrl ? "Changer la photo" : "Ajouter une photo"}
+            <input type="file" accept="image/*" onChange={handlePhotoChange} hidden />
+          </label>
+          {value.photoDataUrl && (
+            <button type="button" className="link-btn" onClick={() => set("photoDataUrl", "")}>
+              Supprimer
+            </button>
+          )}
+          {photoError && <p className="field-error">{photoError}</p>}
+        </div>
+      </div>
+
       <div className="grid-2">
         <label>
           Nom complet
