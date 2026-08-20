@@ -4,6 +4,7 @@ import type { CVData } from "./types";
 import { emptyData } from "./data/emptyData";
 import { savePdf } from "./lib/savePdf";
 import { generateCoverLetterBody } from "./lib/coverLetterTemplate";
+import { clearStoredState, loadStoredState, saveStoredState } from "./lib/storage";
 import { PersonalForm } from "./components/PersonalForm";
 import { ExperiencesForm } from "./components/ExperiencesForm";
 import { EducationsForm } from "./components/EducationsForm";
@@ -32,10 +33,15 @@ const statusMessages: Record<string, string> = {
 };
 
 function App() {
-  const [data, setData] = useState<CVData>(emptyData);
+  const [data, setData] = useState<CVData>(() => loadStoredState()?.data ?? emptyData());
   const [downloading, setDownloading] = useState<"cv" | "letter" | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const [letterAuto, setLetterAuto] = useState(true);
+  const [letterAuto, setLetterAuto] = useState(() => loadStoredState()?.letterAuto ?? true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => saveStoredState({ data, letterAuto }), 300);
+    return () => clearTimeout(timeout);
+  }, [data, letterAuto]);
 
   useEffect(() => {
     if (!letterAuto) return;
@@ -61,6 +67,16 @@ function App() {
 
   function handleRegenerate() {
     setLetterAuto(true);
+  }
+
+  function handleReset() {
+    if (!window.confirm("Effacer toutes les informations saisies ? Cette action est irréversible.")) {
+      return;
+    }
+    clearStoredState();
+    setData(emptyData());
+    setLetterAuto(true);
+    setStatus(null);
   }
 
   async function handleDownloadCv() {
@@ -96,7 +112,10 @@ function App() {
         <div>
           <p className="eyebrow">TrouveTonEmploi</p>
           <h1>Générateur de CV & lettre de motivation</h1>
-          <p>Renseignez vos informations, puis téléchargez vos documents en PDF.</p>
+          <p>
+            Renseignez vos informations, puis téléchargez vos documents en PDF. Votre brouillon
+            est enregistré automatiquement dans ce navigateur.
+          </p>
         </div>
         <div className="header-actions">
           <button type="button" onClick={handleDownloadCv} disabled={downloading !== null}>
@@ -142,6 +161,12 @@ function App() {
           onRegenerate={handleRegenerate}
         />
       </main>
+
+      <footer className="app-footer">
+        <button type="button" className="link-btn" onClick={handleReset}>
+          Effacer mes données et recommencer
+        </button>
+      </footer>
     </div>
   );
 }
