@@ -1,83 +1,91 @@
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "../types";
+import { computeDensity, fontPx, getLayoutScale, spacePx, type LayoutScale } from "../lib/density";
 
-const styles = StyleSheet.create({
-  page: {
-    fontFamily: "Helvetica",
-    fontSize: 10,
-    color: "#1a1a1a",
-    padding: 40,
-  },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 4,
-    objectFit: "cover",
-  },
-  name: {
-    fontSize: 20,
-    fontFamily: "Helvetica-Bold",
-    marginBottom: 2,
-  },
-  jobTitle: {
-    fontSize: 11,
-    color: "#4a4a4a",
-    marginBottom: 6,
-  },
-  contactLine: {
-    fontSize: 9,
-    color: "#4a4a4a",
-  },
-  sectionTitle: {
-    fontSize: 10.5,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    borderBottom: "1 solid #1a1a1a",
-    paddingBottom: 3,
-    marginTop: 14,
-    marginBottom: 8,
-  },
-  summary: {
-    fontSize: 9.5,
-    lineHeight: 1.5,
-  },
-  itemBlock: {
-    marginBottom: 9,
-  },
-  itemTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  itemTitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-  },
-  itemDates: {
-    fontSize: 9,
-    color: "#4a4a4a",
-  },
-  itemSubtitle: {
-    fontSize: 9.5,
-    color: "#333333",
-    marginBottom: 2,
-  },
-  itemDescription: {
-    fontSize: 9,
-    lineHeight: 1.4,
-    color: "#333333",
-  },
-  inlineList: {
-    fontSize: 9.5,
-    lineHeight: 1.6,
-  },
-});
+function buildStyles(scale: LayoutScale) {
+  const f = (base: number) => fontPx(base, scale);
+  const s = (base: number) => spacePx(base, scale);
+  const photoSize = Math.round(60 * Math.min(1.25, Math.max(0.85, scale.spaceScale)));
+
+  return StyleSheet.create({
+    page: {
+      fontFamily: "Helvetica",
+      fontSize: f(10),
+      color: "#1a1a1a",
+      padding: s(40),
+      justifyContent: scale.center ? "center" : "flex-start",
+    },
+    headerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: s(16),
+    },
+    photo: {
+      width: photoSize,
+      height: photoSize,
+      borderRadius: 4,
+      objectFit: "cover",
+    },
+    name: {
+      fontSize: f(20),
+      fontFamily: "Helvetica-Bold",
+      marginBottom: s(2),
+    },
+    jobTitle: {
+      fontSize: f(11),
+      color: "#4a4a4a",
+      marginBottom: s(6),
+    },
+    contactLine: {
+      fontSize: f(9),
+      color: "#4a4a4a",
+    },
+    sectionTitle: {
+      fontSize: f(10.5),
+      fontFamily: "Helvetica-Bold",
+      textTransform: "uppercase",
+      letterSpacing: 0.8,
+      borderBottom: "1 solid #1a1a1a",
+      paddingBottom: s(3),
+      marginTop: s(14),
+      marginBottom: s(8),
+    },
+    summary: {
+      fontSize: f(9.5),
+      lineHeight: 1.5,
+    },
+    itemBlock: {
+      marginBottom: s(9),
+    },
+    itemTitleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    itemTitle: {
+      fontSize: f(10),
+      fontFamily: "Helvetica-Bold",
+    },
+    itemDates: {
+      fontSize: f(9),
+      color: "#4a4a4a",
+    },
+    itemSubtitle: {
+      fontSize: f(9.5),
+      color: "#333333",
+      marginBottom: s(2),
+    },
+    itemDescription: {
+      fontSize: f(9),
+      lineHeight: 1.4,
+      color: "#333333",
+    },
+    inlineList: {
+      fontSize: f(9.5),
+      lineHeight: 1.6,
+    },
+  });
+}
 
 function formatPeriod(debut: string, fin: string, enCours?: boolean) {
   const end = enCours ? "Aujourd'hui" : fin;
@@ -87,6 +95,7 @@ function formatPeriod(debut: string, fin: string, enCours?: boolean) {
 
 export function ClassicCVDocument({ data }: { data: CVData }) {
   const { personal, experiences, educations, skills, languages } = data;
+  const styles = buildStyles(getLayoutScale(computeDensity(data)));
 
   const contactParts = [
     personal.email,

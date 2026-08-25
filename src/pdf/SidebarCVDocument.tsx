@@ -1,99 +1,109 @@
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "../types";
+import { computeDensity, fontPx, getLayoutScale, spacePx, type LayoutScale } from "../lib/density";
 
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: "row",
-    fontFamily: "Helvetica",
-    fontSize: 10,
-    color: "#1f2933",
-  },
-  sidebar: {
-    width: "32%",
-    backgroundColor: "#1f3a5f",
-    color: "#ffffff",
-    padding: 20,
-  },
-  main: {
-    width: "68%",
-    padding: 24,
-  },
-  photoWrap: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    overflow: "hidden",
-    marginBottom: 12,
-  },
-  photo: {
-    width: 76,
-    height: 76,
-    objectFit: "cover",
-  },
-  name: {
-    fontSize: 18,
-    fontFamily: "Helvetica-Bold",
-    marginBottom: 2,
-  },
-  jobTitle: {
-    fontSize: 11,
-    marginBottom: 16,
-    color: "#cfe0f5",
-  },
-  sidebarSectionTitle: {
-    fontSize: 11,
-    fontFamily: "Helvetica-Bold",
-    marginTop: 14,
-    marginBottom: 6,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    color: "#cfe0f5",
-  },
-  sidebarLine: {
-    fontSize: 9,
-    marginBottom: 4,
-    lineHeight: 1.4,
-  },
-  mainSectionTitle: {
-    fontSize: 12,
-    fontFamily: "Helvetica-Bold",
-    color: "#1f3a5f",
-    marginTop: 14,
-    marginBottom: 6,
-    textTransform: "uppercase",
-    borderBottom: "1 solid #1f3a5f",
-    paddingBottom: 3,
-  },
-  summary: {
-    fontSize: 9.5,
-    lineHeight: 1.5,
-  },
-  itemBlock: {
-    marginBottom: 10,
-  },
-  itemTitleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  itemTitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-  },
-  itemDates: {
-    fontSize: 9,
-    color: "#52606d",
-  },
-  itemSubtitle: {
-    fontSize: 9.5,
-    color: "#334455",
-    marginBottom: 3,
-  },
-  itemDescription: {
-    fontSize: 9,
-    lineHeight: 1.4,
-    color: "#3e4c59",
-  },
-});
+function buildStyles(scale: LayoutScale) {
+  const f = (base: number) => fontPx(base, scale);
+  const s = (base: number) => spacePx(base, scale);
+  const photoSize = Math.round(76 * Math.min(1.3, Math.max(0.85, scale.spaceScale)));
+  const columnJustify = scale.center ? "center" : "flex-start";
+
+  return StyleSheet.create({
+    page: {
+      flexDirection: "row",
+      fontFamily: "Helvetica",
+      fontSize: f(10),
+      color: "#1f2933",
+    },
+    sidebar: {
+      width: "32%",
+      backgroundColor: "#1f3a5f",
+      color: "#ffffff",
+      padding: s(20),
+      justifyContent: columnJustify,
+    },
+    main: {
+      width: "68%",
+      padding: s(24),
+      justifyContent: columnJustify,
+    },
+    photoWrap: {
+      width: photoSize,
+      height: photoSize,
+      borderRadius: photoSize / 2,
+      overflow: "hidden",
+      marginBottom: s(12),
+    },
+    photo: {
+      width: photoSize,
+      height: photoSize,
+      objectFit: "cover",
+    },
+    name: {
+      fontSize: f(18),
+      fontFamily: "Helvetica-Bold",
+      marginBottom: s(2),
+    },
+    jobTitle: {
+      fontSize: f(11),
+      marginBottom: s(16),
+      color: "#cfe0f5",
+    },
+    sidebarSectionTitle: {
+      fontSize: f(11),
+      fontFamily: "Helvetica-Bold",
+      marginTop: s(14),
+      marginBottom: s(6),
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      color: "#cfe0f5",
+    },
+    sidebarLine: {
+      fontSize: f(9),
+      marginBottom: s(4),
+      lineHeight: 1.4,
+    },
+    mainSectionTitle: {
+      fontSize: f(12),
+      fontFamily: "Helvetica-Bold",
+      color: "#1f3a5f",
+      marginTop: s(14),
+      marginBottom: s(6),
+      textTransform: "uppercase",
+      borderBottom: "1 solid #1f3a5f",
+      paddingBottom: s(3),
+    },
+    summary: {
+      fontSize: f(9.5),
+      lineHeight: 1.5,
+    },
+    itemBlock: {
+      marginBottom: s(10),
+    },
+    itemTitleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    itemTitle: {
+      fontSize: f(10),
+      fontFamily: "Helvetica-Bold",
+    },
+    itemDates: {
+      fontSize: f(9),
+      color: "#52606d",
+    },
+    itemSubtitle: {
+      fontSize: f(9.5),
+      color: "#334455",
+      marginBottom: s(3),
+    },
+    itemDescription: {
+      fontSize: f(9),
+      lineHeight: 1.4,
+      color: "#3e4c59",
+    },
+  });
+}
 
 function formatPeriod(debut: string, fin: string, enCours?: boolean) {
   const end = enCours ? "Aujourd'hui" : fin;
@@ -103,6 +113,7 @@ function formatPeriod(debut: string, fin: string, enCours?: boolean) {
 
 export function SidebarCVDocument({ data }: { data: CVData }) {
   const { personal, experiences, educations, skills, languages } = data;
+  const styles = buildStyles(getLayoutScale(computeDensity(data)));
 
   return (
     <Document>
