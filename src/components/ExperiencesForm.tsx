@@ -1,5 +1,6 @@
 import type { Experience } from "../types";
 import { emptyExperience } from "../data/emptyData";
+import { useEntryList } from "../lib/useEntryList";
 
 interface Props {
   value: Experience[];
@@ -7,17 +8,7 @@ interface Props {
 }
 
 export function ExperiencesForm({ value, onChange }: Props) {
-  function update(id: string, patch: Partial<Experience>) {
-    onChange(value.map((e) => (e.id === id ? { ...e, ...patch } : e)));
-  }
-
-  function remove(id: string) {
-    onChange(value.filter((e) => e.id !== id));
-  }
-
-  function add() {
-    onChange([...value, emptyExperience()]);
-  }
+  const { update, remove, add } = useEntryList(value, onChange, emptyExperience);
 
   return (
     <section className="card">

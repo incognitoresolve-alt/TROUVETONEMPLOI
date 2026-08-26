@@ -1,4 +1,5 @@
 import type { CoverLetterInfo } from "../types";
+import { makeSetter } from "../lib/makeSetter";
 
 interface Props {
   value: CoverLetterInfo;
@@ -15,9 +16,7 @@ export function CoverLetterForm({
   onCorpsEdit,
   onRegenerate,
 }: Props) {
-  function set<K extends keyof CoverLetterInfo>(key: K, v: CoverLetterInfo[K]) {
-    onChange({ ...value, [key]: v });
-  }
+  const set = makeSetter(value, onChange);
 
   return (
     <section className="card">

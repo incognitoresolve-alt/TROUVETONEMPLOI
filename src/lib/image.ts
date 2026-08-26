@@ -16,5 +16,15 @@ export async function fileToResizedDataUrl(
   ctx.drawImage(bitmap, 0, 0, width, height);
   bitmap.close?.();
 
-  return canvas.toDataURL("image/jpeg", quality);
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/jpeg", quality),
+  );
+  if (!blob) throw new Error("Échec de la compression de l'image");
+
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error("Échec de la lecture de l'image"));
+    reader.readAsDataURL(blob);
+  });
 }

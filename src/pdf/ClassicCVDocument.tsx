@@ -1,11 +1,21 @@
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "../types";
 import { computeDensity, fontPx, getLayoutScale, spacePx, type LayoutScale } from "../lib/density";
+import {
+  buildContactLines,
+  filterFilled,
+  formatPeriod,
+  hasEducationContent,
+  hasExperienceContent,
+  hasLanguageContent,
+  hasSkillContent,
+  scaledPhotoSize,
+} from "../lib/pdfContent";
 
 function buildStyles(scale: LayoutScale) {
   const f = (base: number) => fontPx(base, scale);
   const s = (base: number) => spacePx(base, scale);
-  const photoSize = Math.round(60 * Math.min(1.25, Math.max(0.85, scale.spaceScale)));
+  const photoSize = scaledPhotoSize(60, scale, 0.85, 1.25);
 
   return StyleSheet.create({
     page: {
@@ -87,23 +97,15 @@ function buildStyles(scale: LayoutScale) {
   });
 }
 
-function formatPeriod(debut: string, fin: string, enCours?: boolean) {
-  const end = enCours ? "Aujourd'hui" : fin;
-  if (!debut && !end) return "";
-  return `${debut || "?"} — ${end || "?"}`;
-}
-
 export function ClassicCVDocument({ data }: { data: CVData }) {
   const { personal, experiences, educations, skills, languages } = data;
   const styles = buildStyles(getLayoutScale(computeDensity(data)));
 
-  const contactParts = [
-    personal.email,
-    personal.phone,
-    [personal.address, personal.city].filter(Boolean).join(", "),
-    personal.linkedin,
-    personal.website,
-  ].filter(Boolean);
+  const contactLine = buildContactLines(personal).join("  •  ");
+  const filledSkills = filterFilled(skills, hasSkillContent);
+  const filledLanguages = filterFilled(languages, hasLanguageContent);
+  const filledExperiences = filterFilled(experiences, hasExperienceContent);
+  const filledEducations = filterFilled(educations, hasEducationContent);
 
   return (
     <Document>
@@ -112,7 +114,7 @@ export function ClassicCVDocument({ data }: { data: CVData }) {
           <View>
             <Text style={styles.name}>{personal.fullName || "Votre nom"}</Text>
             <Text style={styles.jobTitle}>{personal.jobTitle}</Text>
-            <Text style={styles.contactLine}>{contactParts.join("  •  ")}</Text>
+            <Text style={styles.contactLine}>{contactLine}</Text>
           </View>
           {personal.photoDataUrl ? <Image src={personal.photoDataUrl} style={styles.photo} /> : null}
         </View>
@@ -124,70 +126,60 @@ export function ClassicCVDocument({ data }: { data: CVData }) {
           </>
         ) : null}
 
-        {experiences.some((e) => e.poste.trim() || e.entreprise.trim()) && (
+        {filledExperiences && (
           <>
             <Text style={styles.sectionTitle}>Expérience professionnelle</Text>
-            {experiences
-              .filter((e) => e.poste.trim() || e.entreprise.trim())
-              .map((e) => (
-                <View key={e.id} style={styles.itemBlock}>
-                  <View style={styles.itemTitleRow}>
-                    <Text style={styles.itemTitle}>{e.poste}</Text>
-                    <Text style={styles.itemDates}>
-                      {formatPeriod(e.dateDebut, e.dateFin, e.enCours)}
-                    </Text>
-                  </View>
-                  <Text style={styles.itemSubtitle}>
-                    {[e.entreprise, e.lieu].filter(Boolean).join(" — ")}
+            {filledExperiences.map((e) => (
+              <View key={e.id} style={styles.itemBlock}>
+                <View style={styles.itemTitleRow}>
+                  <Text style={styles.itemTitle}>{e.poste}</Text>
+                  <Text style={styles.itemDates}>
+                    {formatPeriod(e.dateDebut, e.dateFin, e.enCours)}
                   </Text>
-                  {e.description ? (
-                    <Text style={styles.itemDescription}>{e.description}</Text>
-                  ) : null}
                 </View>
-              ))}
+                <Text style={styles.itemSubtitle}>
+                  {[e.entreprise, e.lieu].filter(Boolean).join(" — ")}
+                </Text>
+                {e.description ? (
+                  <Text style={styles.itemDescription}>{e.description}</Text>
+                ) : null}
+              </View>
+            ))}
           </>
         )}
 
-        {educations.some((ed) => ed.diplome.trim() || ed.etablissement.trim()) && (
+        {filledEducations && (
           <>
             <Text style={styles.sectionTitle}>Formation</Text>
-            {educations
-              .filter((ed) => ed.diplome.trim() || ed.etablissement.trim())
-              .map((ed) => (
-                <View key={ed.id} style={styles.itemBlock}>
-                  <View style={styles.itemTitleRow}>
-                    <Text style={styles.itemTitle}>{ed.diplome}</Text>
-                    <Text style={styles.itemDates}>{formatPeriod(ed.dateDebut, ed.dateFin)}</Text>
-                  </View>
-                  <Text style={styles.itemSubtitle}>
-                    {[ed.etablissement, ed.lieu].filter(Boolean).join(" — ")}
-                  </Text>
-                  {ed.description ? (
-                    <Text style={styles.itemDescription}>{ed.description}</Text>
-                  ) : null}
+            {filledEducations.map((ed) => (
+              <View key={ed.id} style={styles.itemBlock}>
+                <View style={styles.itemTitleRow}>
+                  <Text style={styles.itemTitle}>{ed.diplome}</Text>
+                  <Text style={styles.itemDates}>{formatPeriod(ed.dateDebut, ed.dateFin)}</Text>
                 </View>
-              ))}
+                <Text style={styles.itemSubtitle}>
+                  {[ed.etablissement, ed.lieu].filter(Boolean).join(" — ")}
+                </Text>
+                {ed.description ? (
+                  <Text style={styles.itemDescription}>{ed.description}</Text>
+                ) : null}
+              </View>
+            ))}
           </>
         )}
 
-        {skills.some((s) => s.name.trim()) && (
+        {filledSkills && (
           <>
             <Text style={styles.sectionTitle}>Compétences</Text>
-            <Text style={styles.inlineList}>
-              {skills
-                .filter((s) => s.name.trim())
-                .map((s) => s.name)
-                .join("   •   ")}
-            </Text>
+            <Text style={styles.inlineList}>{filledSkills.map((s) => s.name).join("   •   ")}</Text>
           </>
         )}
 
-        {languages.some((l) => l.name.trim()) && (
+        {filledLanguages && (
           <>
             <Text style={styles.sectionTitle}>Langues</Text>
             <Text style={styles.inlineList}>
-              {languages
-                .filter((l) => l.name.trim())
+              {filledLanguages
                 .map((l) => (l.level ? `${l.name} (${l.level})` : l.name))
                 .join("   •   ")}
             </Text>

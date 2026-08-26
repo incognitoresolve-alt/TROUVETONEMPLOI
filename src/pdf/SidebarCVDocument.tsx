@@ -1,11 +1,21 @@
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "../types";
 import { computeDensity, fontPx, getLayoutScale, spacePx, type LayoutScale } from "../lib/density";
+import {
+  buildContactLines,
+  filterFilled,
+  formatPeriod,
+  hasEducationContent,
+  hasExperienceContent,
+  hasLanguageContent,
+  hasSkillContent,
+  scaledPhotoSize,
+} from "../lib/pdfContent";
 
 function buildStyles(scale: LayoutScale) {
   const f = (base: number) => fontPx(base, scale);
   const s = (base: number) => spacePx(base, scale);
-  const photoSize = Math.round(76 * Math.min(1.3, Math.max(0.85, scale.spaceScale)));
+  const photoSize = scaledPhotoSize(76, scale);
   const columnJustify = scale.center ? "center" : "flex-start";
 
   return StyleSheet.create({
@@ -105,15 +115,15 @@ function buildStyles(scale: LayoutScale) {
   });
 }
 
-function formatPeriod(debut: string, fin: string, enCours?: boolean) {
-  const end = enCours ? "Aujourd'hui" : fin;
-  if (!debut && !end) return "";
-  return `${debut || "?"} — ${end || "?"}`;
-}
-
 export function SidebarCVDocument({ data }: { data: CVData }) {
   const { personal, experiences, educations, skills, languages } = data;
   const styles = buildStyles(getLayoutScale(computeDensity(data)));
+
+  const contactLines = buildContactLines(personal);
+  const filledSkills = filterFilled(skills, hasSkillContent);
+  const filledLanguages = filterFilled(languages, hasLanguageContent);
+  const filledExperiences = filterFilled(experiences, hasExperienceContent);
+  const filledEducations = filterFilled(educations, hasEducationContent);
 
   return (
     <Document>
@@ -128,40 +138,32 @@ export function SidebarCVDocument({ data }: { data: CVData }) {
           <Text style={styles.jobTitle}>{personal.jobTitle}</Text>
 
           <Text style={styles.sidebarSectionTitle}>Contact</Text>
-          {personal.email ? <Text style={styles.sidebarLine}>{personal.email}</Text> : null}
-          {personal.phone ? <Text style={styles.sidebarLine}>{personal.phone}</Text> : null}
-          {(personal.address || personal.city) ? (
-            <Text style={styles.sidebarLine}>
-              {[personal.address, personal.city].filter(Boolean).join(", ")}
+          {contactLines.map((line) => (
+            <Text key={line} style={styles.sidebarLine}>
+              {line}
             </Text>
-          ) : null}
-          {personal.linkedin ? <Text style={styles.sidebarLine}>{personal.linkedin}</Text> : null}
-          {personal.website ? <Text style={styles.sidebarLine}>{personal.website}</Text> : null}
+          ))}
 
-          {skills.some((s) => s.name.trim()) && (
+          {filledSkills && (
             <>
               <Text style={styles.sidebarSectionTitle}>Compétences</Text>
-              {skills
-                .filter((s) => s.name.trim())
-                .map((s) => (
-                  <Text key={s.id} style={styles.sidebarLine}>
-                    • {s.name}
-                  </Text>
-                ))}
+              {filledSkills.map((s) => (
+                <Text key={s.id} style={styles.sidebarLine}>
+                  • {s.name}
+                </Text>
+              ))}
             </>
           )}
 
-          {languages.some((l) => l.name.trim()) && (
+          {filledLanguages && (
             <>
               <Text style={styles.sidebarSectionTitle}>Langues</Text>
-              {languages
-                .filter((l) => l.name.trim())
-                .map((l) => (
-                  <Text key={l.id} style={styles.sidebarLine}>
-                    {l.name}
-                    {l.level ? ` — ${l.level}` : ""}
-                  </Text>
-                ))}
+              {filledLanguages.map((l) => (
+                <Text key={l.id} style={styles.sidebarLine}>
+                  {l.name}
+                  {l.level ? ` — ${l.level}` : ""}
+                </Text>
+              ))}
             </>
           )}
         </View>
@@ -174,51 +176,45 @@ export function SidebarCVDocument({ data }: { data: CVData }) {
             </>
           ) : null}
 
-          {experiences.some((e) => e.poste.trim() || e.entreprise.trim()) && (
+          {filledExperiences && (
             <>
               <Text style={styles.mainSectionTitle}>Expérience professionnelle</Text>
-              {experiences
-                .filter((e) => e.poste.trim() || e.entreprise.trim())
-                .map((e) => (
-                  <View key={e.id} style={styles.itemBlock}>
-                    <View style={styles.itemTitleRow}>
-                      <Text style={styles.itemTitle}>{e.poste}</Text>
-                      <Text style={styles.itemDates}>
-                        {formatPeriod(e.dateDebut, e.dateFin, e.enCours)}
-                      </Text>
-                    </View>
-                    <Text style={styles.itemSubtitle}>
-                      {[e.entreprise, e.lieu].filter(Boolean).join(" — ")}
+              {filledExperiences.map((e) => (
+                <View key={e.id} style={styles.itemBlock}>
+                  <View style={styles.itemTitleRow}>
+                    <Text style={styles.itemTitle}>{e.poste}</Text>
+                    <Text style={styles.itemDates}>
+                      {formatPeriod(e.dateDebut, e.dateFin, e.enCours)}
                     </Text>
-                    {e.description ? (
-                      <Text style={styles.itemDescription}>{e.description}</Text>
-                    ) : null}
                   </View>
-                ))}
+                  <Text style={styles.itemSubtitle}>
+                    {[e.entreprise, e.lieu].filter(Boolean).join(" — ")}
+                  </Text>
+                  {e.description ? (
+                    <Text style={styles.itemDescription}>{e.description}</Text>
+                  ) : null}
+                </View>
+              ))}
             </>
           )}
 
-          {educations.some((ed) => ed.diplome.trim() || ed.etablissement.trim()) && (
+          {filledEducations && (
             <>
               <Text style={styles.mainSectionTitle}>Formation</Text>
-              {educations
-                .filter((ed) => ed.diplome.trim() || ed.etablissement.trim())
-                .map((ed) => (
-                  <View key={ed.id} style={styles.itemBlock}>
-                    <View style={styles.itemTitleRow}>
-                      <Text style={styles.itemTitle}>{ed.diplome}</Text>
-                      <Text style={styles.itemDates}>
-                        {formatPeriod(ed.dateDebut, ed.dateFin)}
-                      </Text>
-                    </View>
-                    <Text style={styles.itemSubtitle}>
-                      {[ed.etablissement, ed.lieu].filter(Boolean).join(" — ")}
-                    </Text>
-                    {ed.description ? (
-                      <Text style={styles.itemDescription}>{ed.description}</Text>
-                    ) : null}
+              {filledEducations.map((ed) => (
+                <View key={ed.id} style={styles.itemBlock}>
+                  <View style={styles.itemTitleRow}>
+                    <Text style={styles.itemTitle}>{ed.diplome}</Text>
+                    <Text style={styles.itemDates}>{formatPeriod(ed.dateDebut, ed.dateFin)}</Text>
                   </View>
-                ))}
+                  <Text style={styles.itemSubtitle}>
+                    {[ed.etablissement, ed.lieu].filter(Boolean).join(" — ")}
+                  </Text>
+                  {ed.description ? (
+                    <Text style={styles.itemDescription}>{ed.description}</Text>
+                  ) : null}
+                </View>
+              ))}
             </>
           )}
         </View>

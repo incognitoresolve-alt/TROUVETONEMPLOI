@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { PersonalInfo } from "../types";
 import { fileToResizedDataUrl } from "../lib/image";
+import { makeSetter } from "../lib/makeSetter";
 
 interface Props {
   value: PersonalInfo;
@@ -9,10 +10,7 @@ interface Props {
 
 export function PersonalForm({ value, onChange }: Props) {
   const [photoError, setPhotoError] = useState<string | null>(null);
-
-  function set<K extends keyof PersonalInfo>(key: K, v: PersonalInfo[K]) {
-    onChange({ ...value, [key]: v });
-  }
+  const set = makeSetter(value, onChange);
 
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

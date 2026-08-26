@@ -1,53 +1,60 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { CVData } from "../types";
+import { computeLetterDensity, fontPx, getLayoutScale, spacePx, type LayoutScale } from "../lib/density";
 
-const styles = StyleSheet.create({
-  page: {
-    fontFamily: "Helvetica",
-    fontSize: 11,
-    color: "#1f2933",
-    padding: 48,
-    lineHeight: 1.5,
-  },
-  senderBlock: {
-    marginBottom: 24,
-  },
-  senderName: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 12,
-  },
-  senderLine: {
-    fontSize: 9.5,
-    color: "#3e4c59",
-  },
-  recipientBlock: {
-    marginBottom: 24,
-    alignSelf: "flex-end",
-    textAlign: "right",
-  },
-  dateLine: {
-    marginBottom: 24,
-    textAlign: "right",
-    fontSize: 10,
-  },
-  objet: {
-    fontFamily: "Helvetica-Bold",
-    fontSize: 11,
-    marginBottom: 20,
-  },
-  paragraph: {
-    fontSize: 10.5,
-    marginBottom: 10,
-  },
-  signature: {
-    marginTop: 32,
-    textAlign: "right",
-    fontSize: 10.5,
-  },
-});
+function buildStyles(scale: LayoutScale) {
+  const f = (base: number) => fontPx(base, scale);
+  const s = (base: number) => spacePx(base, scale);
+
+  return StyleSheet.create({
+    page: {
+      fontFamily: "Helvetica",
+      fontSize: f(11),
+      color: "#1f2933",
+      padding: s(48),
+      lineHeight: 1.5,
+    },
+    senderBlock: {
+      marginBottom: s(24),
+    },
+    senderName: {
+      fontFamily: "Helvetica-Bold",
+      fontSize: f(12),
+    },
+    senderLine: {
+      fontSize: f(9.5),
+      color: "#3e4c59",
+    },
+    recipientBlock: {
+      marginBottom: s(24),
+      alignSelf: "flex-end",
+      textAlign: "right",
+    },
+    dateLine: {
+      marginBottom: s(24),
+      textAlign: "right",
+      fontSize: f(10),
+    },
+    objet: {
+      fontFamily: "Helvetica-Bold",
+      fontSize: f(11),
+      marginBottom: s(20),
+    },
+    paragraph: {
+      fontSize: f(10.5),
+      marginBottom: s(10),
+    },
+    signature: {
+      marginTop: s(32),
+      textAlign: "right",
+      fontSize: f(10.5),
+    },
+  });
+}
 
 export function CoverLetterDocument({ data }: { data: CVData }) {
   const { personal, coverLetter } = data;
+  const styles = buildStyles(getLayoutScale(computeLetterDensity(coverLetter.corps)));
   const paragraphs = coverLetter.corps
     .split(/\n{2,}/)
     .map((p) => p.trim())

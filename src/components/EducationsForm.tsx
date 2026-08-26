@@ -1,5 +1,6 @@
 import type { Education } from "../types";
 import { emptyEducation } from "../data/emptyData";
+import { useEntryList } from "../lib/useEntryList";
 
 interface Props {
   value: Education[];
@@ -7,17 +8,7 @@ interface Props {
 }
 
 export function EducationsForm({ value, onChange }: Props) {
-  function update(id: string, patch: Partial<Education>) {
-    onChange(value.map((e) => (e.id === id ? { ...e, ...patch } : e)));
-  }
-
-  function remove(id: string) {
-    onChange(value.filter((e) => e.id !== id));
-  }
-
-  function add() {
-    onChange([...value, emptyEducation()]);
-  }
+  const { update, remove, add } = useEntryList(value, onChange, emptyEducation);
 
   return (
     <section className="card">

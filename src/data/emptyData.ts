@@ -1,6 +1,5 @@
 import type { CVData } from "../types";
-
-type Loose = Record<string, unknown>;
+import { DEFAULT_TEMPLATE, isCvTemplate } from "../lib/templates";
 
 let counter = 0;
 export function newId(): string {
@@ -68,7 +67,7 @@ export function emptyData(): CVData {
       objet: "",
       corps: "",
     },
-    template: "sidebar",
+    template: DEFAULT_TEMPLATE,
   };
 }
 
@@ -76,30 +75,25 @@ function withDefaults<T extends object>(defaults: T, item: unknown): T {
   return { ...defaults, ...(item && typeof item === "object" ? (item as Partial<T>) : {}) };
 }
 
+/** Normalizes an arbitrary array (from localStorage or imported JSON) onto one blank item at minimum. */
+function normalizeArray<T extends { id: string }>(raw: unknown, makeEmpty: () => T): T[] {
+  const items = Array.isArray(raw) ? raw : [];
+  return items.length ? items.map((item) => withDefaults(makeEmpty(), item)) : [makeEmpty()];
+}
+
 /** Defensively merges arbitrary/older-shaped data (localStorage, imported JSON) onto a fresh default. */
 export function normalizeData(input: unknown): CVData {
   const base = emptyData();
   if (!input || typeof input !== "object") return base;
-  const raw = input as Loose;
-
-  const experiences = Array.isArray(raw.experiences) ? raw.experiences : [];
-  const educations = Array.isArray(raw.educations) ? raw.educations : [];
-  const skills = Array.isArray(raw.skills) ? raw.skills : [];
-  const languages = Array.isArray(raw.languages) ? raw.languages : [];
+  const raw = input as Record<string, unknown>;
 
   return {
     personal: withDefaults(base.personal, raw.personal),
-    experiences: experiences.length
-      ? experiences.map((e) => withDefaults(emptyExperience(), e))
-      : base.experiences,
-    educations: educations.length
-      ? educations.map((e) => withDefaults(emptyEducation(), e))
-      : base.educations,
-    skills: skills.length ? skills.map((s) => withDefaults(emptySkill(), s)) : base.skills,
-    languages: languages.length
-      ? languages.map((l) => withDefaults(emptyLanguage(), l))
-      : base.languages,
+    experiences: normalizeArray(raw.experiences, emptyExperience),
+    educations: normalizeArray(raw.educations, emptyEducation),
+    skills: normalizeArray(raw.skills, emptySkill),
+    languages: normalizeArray(raw.languages, emptyLanguage),
     coverLetter: withDefaults(base.coverLetter, raw.coverLetter),
-    template: raw.template === "classic" ? "classic" : "sidebar",
+    template: isCvTemplate(raw.template) ? raw.template : DEFAULT_TEMPLATE,
   };
 }

@@ -3,7 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import type { CVData } from "./types";
 import { emptyData, normalizeData } from "./data/emptyData";
 import { saveFile } from "./lib/saveFile";
-import { generateCoverLetterBody } from "./lib/coverLetterTemplate";
+import { useAutoCoverLetter } from "./lib/useAutoCoverLetter";
 import { clearStoredState, loadStoredState, saveStoredState } from "./lib/storage";
 import { PersonalForm } from "./components/PersonalForm";
 import { ExperiencesForm } from "./components/ExperiencesForm";
@@ -36,10 +36,11 @@ const statusMessages: Record<string, string> = {
 };
 
 function App() {
-  const [data, setData] = useState<CVData>(() => loadStoredState()?.data ?? emptyData());
+  const [initialState] = useState(loadStoredState);
+  const [data, setData] = useState<CVData>(() => initialState?.data ?? emptyData());
   const [downloading, setDownloading] = useState<"cv" | "letter" | "json" | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const [letterAuto, setLetterAuto] = useState(() => loadStoredState()?.letterAuto ?? true);
+  const [letterAuto, setLetterAuto] = useState(() => initialState?.letterAuto ?? true);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -47,22 +48,7 @@ function App() {
     return () => clearTimeout(timeout);
   }, [data, letterAuto]);
 
-  useEffect(() => {
-    if (!letterAuto) return;
-    setData((d) => ({
-      ...d,
-      coverLetter: { ...d.coverLetter, corps: generateCoverLetterBody(d) },
-    }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    letterAuto,
-    data.personal,
-    data.experiences,
-    data.skills,
-    data.coverLetter.destinataire,
-    data.coverLetter.entreprise,
-    data.coverLetter.objet,
-  ]);
+  useAutoCoverLetter(data, setData, letterAuto);
 
   function handleCorpsEdit(corps: string) {
     setLetterAuto(false);

@@ -1,5 +1,6 @@
 import type { LanguageItem, Skill } from "../types";
 import { emptyLanguage, emptySkill } from "../data/emptyData";
+import { useEntryList } from "../lib/useEntryList";
 
 interface Props {
   skills: Skill[];
@@ -14,25 +15,8 @@ export function SkillsLanguagesForm({
   onSkillsChange,
   onLanguagesChange,
 }: Props) {
-  function updateSkill(id: string, name: string) {
-    onSkillsChange(skills.map((s) => (s.id === id ? { ...s, name } : s)));
-  }
-  function removeSkill(id: string) {
-    onSkillsChange(skills.filter((s) => s.id !== id));
-  }
-  function addSkill() {
-    onSkillsChange([...skills, emptySkill()]);
-  }
-
-  function updateLanguage(id: string, patch: Partial<LanguageItem>) {
-    onLanguagesChange(languages.map((l) => (l.id === id ? { ...l, ...patch } : l)));
-  }
-  function removeLanguage(id: string) {
-    onLanguagesChange(languages.filter((l) => l.id !== id));
-  }
-  function addLanguage() {
-    onLanguagesChange([...languages, emptyLanguage()]);
-  }
+  const skillEntries = useEntryList(skills, onSkillsChange, emptySkill);
+  const languageEntries = useEntryList(languages, onLanguagesChange, emptyLanguage);
 
   return (
     <section className="card">
@@ -46,17 +30,17 @@ export function SkillsLanguagesForm({
         <div className="entry-row" key={s.id}>
           <input
             value={s.name}
-            onChange={(e) => updateSkill(s.id, e.target.value)}
+            onChange={(e) => skillEntries.update(s.id, { name: e.target.value })}
             placeholder={`Compétence ${i + 1} (ex: Gestion de projet)`}
           />
           {skills.length > 1 && (
-            <button type="button" className="link-btn" onClick={() => removeSkill(s.id)}>
+            <button type="button" className="link-btn" onClick={() => skillEntries.remove(s.id)}>
               Supprimer
             </button>
           )}
         </div>
       ))}
-      <button type="button" className="add-btn" onClick={addSkill}>
+      <button type="button" className="add-btn" onClick={skillEntries.add}>
         + Ajouter une compétence
       </button>
 
@@ -65,22 +49,26 @@ export function SkillsLanguagesForm({
         <div className="entry-row" key={l.id}>
           <input
             value={l.name}
-            onChange={(e) => updateLanguage(l.id, { name: e.target.value })}
+            onChange={(e) => languageEntries.update(l.id, { name: e.target.value })}
             placeholder="Anglais"
           />
           <input
             value={l.level}
-            onChange={(e) => updateLanguage(l.id, { level: e.target.value })}
+            onChange={(e) => languageEntries.update(l.id, { level: e.target.value })}
             placeholder="Courant"
           />
           {languages.length > 1 && (
-            <button type="button" className="link-btn" onClick={() => removeLanguage(l.id)}>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => languageEntries.remove(l.id)}
+            >
               Supprimer
             </button>
           )}
         </div>
       ))}
-      <button type="button" className="add-btn" onClick={addLanguage}>
+      <button type="button" className="add-btn" onClick={languageEntries.add}>
         + Ajouter une langue
       </button>
     </section>

@@ -35,6 +35,14 @@ export function computeDensity(data: CVData): number {
   return clamp(computeContentScore(data) / FULL_PAGE_SCORE, 0, 1);
 }
 
+/** Calibrated so ~1100 characters of letter body comfortably fill one A4 page at base scale. */
+const FULL_LETTER_SCORE = 1100;
+
+/** Same 0..1 density concept as {@link computeDensity}, scaled for a short cover-letter body instead of a full CV. */
+export function computeLetterDensity(corps: string): number {
+  return clamp(corps.trim().length / FULL_LETTER_SCORE, 0, 1);
+}
+
 export interface LayoutScale {
   /** Multiplier applied to font sizes: bigger text when content is sparse, smaller when dense. */
   fontScale: number;
