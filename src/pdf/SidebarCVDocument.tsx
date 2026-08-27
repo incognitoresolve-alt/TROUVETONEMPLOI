@@ -16,7 +16,6 @@ function buildStyles(scale: LayoutScale) {
   const f = (base: number) => fontPx(base, scale);
   const s = (base: number) => spacePx(base, scale);
   const photoSize = scaledPhotoSize(76, scale);
-  const columnJustify = scale.center ? "center" : "flex-start";
 
   return StyleSheet.create({
     page: {
@@ -30,12 +29,10 @@ function buildStyles(scale: LayoutScale) {
       backgroundColor: "#1f3a5f",
       color: "#ffffff",
       padding: s(20),
-      justifyContent: columnJustify,
     },
     main: {
       width: "68%",
       padding: s(24),
-      justifyContent: columnJustify,
     },
     photoWrap: {
       width: photoSize,

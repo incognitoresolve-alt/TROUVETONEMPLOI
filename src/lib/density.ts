@@ -48,17 +48,17 @@ export interface LayoutScale {
   fontScale: number;
   /** Multiplier applied to margins/paddings/gaps — the main lever for filling or tightening space. */
   spaceScale: number;
-  /** True when content is sparse enough that centering it in the page reads better than top-aligning it. */
-  center: boolean;
 }
 
+// Content always starts at the top of the page, like every real CV/letter template —
+// a previous version vertically centered sparse content instead, which left a large
+// empty band above the header and read as broken, not "balanced". Font/spacing scale
+// is the only lever now: it fills a sparse page by growing text and gaps top-down,
+// and tightens a dense one to keep it fitting on one page.
 export function getLayoutScale(density: number): LayoutScale {
   const fontScale = clamp(1.16 - density * 0.32, 0.82, 1.16);
-  const spaceScale = clamp(1.55 - density * 0.9, 0.7, 1.55);
-  // Below ~two-thirds of a full page, vertically centering the content reads as a
-  // deliberate layout; past that the page is full enough that top-aligning (and
-  // letting overflow paginate normally) is the safer, more document-like choice.
-  return { fontScale, spaceScale, center: density < 0.65 };
+  const spaceScale = clamp(1.65 - density * 1.0, 0.7, 1.65);
+  return { fontScale, spaceScale };
 }
 
 export function fontPx(base: number, scale: LayoutScale): number {

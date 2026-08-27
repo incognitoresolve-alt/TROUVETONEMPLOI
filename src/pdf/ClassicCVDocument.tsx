@@ -23,7 +23,6 @@ function buildStyles(scale: LayoutScale) {
       fontSize: f(10),
       color: "#1a1a1a",
       padding: s(40),
-      justifyContent: scale.center ? "center" : "flex-start",
     },
     headerRow: {
       flexDirection: "row",
