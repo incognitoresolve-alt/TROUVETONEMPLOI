@@ -135,8 +135,8 @@ export function SidebarCVDocument({ data }: { data: CVData }) {
           <Text style={styles.jobTitle}>{personal.jobTitle}</Text>
 
           <Text style={styles.sidebarSectionTitle}>Contact</Text>
-          {contactLines.map((line) => (
-            <Text key={line} style={styles.sidebarLine}>
+          {contactLines.map((line, i) => (
+            <Text key={i} style={styles.sidebarLine}>
               {line}
             </Text>
           ))}

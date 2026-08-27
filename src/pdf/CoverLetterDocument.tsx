@@ -52,6 +52,13 @@ function buildStyles(scale: LayoutScale) {
   });
 }
 
+/** "Lyon, le 18 août 2026" with either part optional — and capitalized when the date leads alone ("Le 18 août 2026"). */
+function formatDateLine(ville: string, date: string): string {
+  const parts = [ville, date ? `le ${date}` : ""].filter(Boolean);
+  const text = parts.join(", ");
+  return text ? text[0].toUpperCase() + text.slice(1) : "";
+}
+
 export function CoverLetterDocument({ data }: { data: CVData }) {
   const { personal, coverLetter } = data;
   const styles = buildStyles(getLayoutScale(computeLetterDensity(coverLetter.corps)));
@@ -83,9 +90,7 @@ export function CoverLetterDocument({ data }: { data: CVData }) {
           ) : null}
         </View>
 
-        <Text style={styles.dateLine}>
-          {[coverLetter.ville, coverLetter.date].filter(Boolean).join(", le ")}
-        </Text>
+        <Text style={styles.dateLine}>{formatDateLine(coverLetter.ville, coverLetter.date)}</Text>
 
         {coverLetter.objet ? (
           <Text style={styles.objet}>Objet : {coverLetter.objet}</Text>

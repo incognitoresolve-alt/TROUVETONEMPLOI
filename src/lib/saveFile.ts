@@ -19,19 +19,23 @@ export type SaveFileResult =
 export async function saveFile(blob: Blob, filename: string): Promise<SaveFileResult> {
   const claude = window.claude;
   if (claude?.use) {
-    const downloads = await claude.use("downloads");
-    if (downloads) {
-      try {
-        await downloads.save({ filename, data: blob });
-        return { ok: true };
-      } catch (err) {
-        const code = (err as { code?: string } | undefined)?.code;
-        if (code === "declined") return { ok: false, reason: "declined" };
-        if (code === "extension_not_enabled" || code === "unavailable" || code === "not_granted") {
-          return { ok: false, reason: "unavailable" };
+    try {
+      const downloads = await claude.use("downloads");
+      if (downloads) {
+        try {
+          await downloads.save({ filename, data: blob });
+          return { ok: true };
+        } catch (err) {
+          const code = (err as { code?: string } | undefined)?.code;
+          if (code === "declined") return { ok: false, reason: "declined" };
+          if (code === "extension_not_enabled" || code === "unavailable" || code === "not_granted") {
+            return { ok: false, reason: "unavailable" };
+          }
+          return { ok: false, reason: "error", message: (err as Error)?.message };
         }
-        return { ok: false, reason: "error", message: (err as Error)?.message };
       }
+    } catch {
+      // claude.use() itself failed unexpectedly — fall through to the plain browser download.
     }
   }
 

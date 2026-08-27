@@ -13,10 +13,15 @@ export function filterFilled<T>(items: T[], predicate: (item: T) => boolean): T[
   return filled.length ? filled : null;
 }
 
+// Title/company are the common case, but a description or dates alone still mean the
+// user wrote something real for this entry — dropping it from the PDF entirely (title
+// blank) would silently discard that text, which is worse than showing a blank title line.
 export const hasExperienceContent = (e: Experience): boolean =>
-  Boolean(e.poste.trim() || e.entreprise.trim());
+  Boolean(e.poste.trim() || e.entreprise.trim() || e.description.trim() || e.dateDebut.trim());
 export const hasEducationContent = (ed: Education): boolean =>
-  Boolean(ed.diplome.trim() || ed.etablissement.trim());
+  Boolean(
+    ed.diplome.trim() || ed.etablissement.trim() || ed.description.trim() || ed.dateDebut.trim(),
+  );
 export const hasSkillContent = (s: Skill): boolean => Boolean(s.name.trim());
 export const hasLanguageContent = (l: LanguageItem): boolean => Boolean(l.name.trim());
 

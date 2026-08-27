@@ -42,6 +42,10 @@ function App() {
   const [status, setStatus] = useState<string | null>(null);
   const [letterAuto, setLetterAuto] = useState(() => initialState?.letterAuto ?? true);
   const importInputRef = useRef<HTMLInputElement>(null);
+  // `downloading` state only disables the buttons after React's next render, which
+  // leaves a brief window where a fast double-click/double-tap fires the handler
+  // twice. A ref is read/written synchronously, so it closes that window.
+  const busyRef = useRef(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => saveStoredState({ data, letterAuto }), 300);
@@ -70,18 +74,25 @@ function App() {
   }
 
   async function handleDownloadCv() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setDownloading("cv");
     setStatus(null);
     try {
       const blob = await pdf(<CVDocument data={data} />).toBlob();
       const result = await saveFile(blob, `CV-${slugify(data.personal.fullName)}.pdf`);
       if (!result.ok) setStatus(statusMessages[result.reason]);
+    } catch {
+      setStatus(statusMessages.error);
     } finally {
+      busyRef.current = false;
       setDownloading(null);
     }
   }
 
   async function handleDownloadLetter() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setDownloading("letter");
     setStatus(null);
     try {
@@ -91,19 +102,27 @@ function App() {
         `Lettre-de-motivation-${slugify(data.personal.fullName)}.pdf`,
       );
       if (!result.ok) setStatus(statusMessages[result.reason]);
+    } catch {
+      setStatus(statusMessages.error);
     } finally {
+      busyRef.current = false;
       setDownloading(null);
     }
   }
 
   async function handleExportJson() {
+    if (busyRef.current) return;
+    busyRef.current = true;
     setDownloading("json");
     setStatus(null);
     try {
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const result = await saveFile(blob, `profil-${slugify(data.personal.fullName)}.json`);
       if (!result.ok) setStatus(statusMessages[result.reason]);
+    } catch {
+      setStatus(statusMessages.error);
     } finally {
+      busyRef.current = false;
       setDownloading(null);
     }
   }
@@ -121,8 +140,9 @@ function App() {
       const text = await file.text();
       const parsed = JSON.parse(text);
       const imported = normalizeData(parsed);
+      const shouldAutoGenerate = imported.coverLetter.corps.trim() === "";
       setData(imported);
-      setLetterAuto(imported.coverLetter.corps.trim() === "");
+      setLetterAuto(shouldAutoGenerate);
       setStatus(statusMessages.imported);
     } catch {
       setStatus(statusMessages.invalid);
